@@ -36,7 +36,6 @@ app.get("/profile", (req, res) => {
     jwt.verify(token, jwtSecret, {}, (err, userData) => {
       if (err) throw err;
       res.json(userData);
-      console.log(userData)
     });
   } else {
     res.status(401).json("token not found");

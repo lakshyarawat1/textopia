@@ -5,7 +5,7 @@ import User from "./models/userSchema.js";
 import jwt from "jsonwebtoken";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import bcrypt from 'bcryptjs'
+import bcrypt from "bcryptjs";
 dotenv.config();
 
 const app = express();
@@ -36,6 +36,7 @@ app.get("/profile", (req, res) => {
     jwt.verify(token, jwtSecret, {}, (err, userData) => {
       if (err) throw err;
       res.json(userData);
+      console.log(userData)
     });
   } else {
     res.status(401).json("token not found");
@@ -44,11 +45,11 @@ app.get("/profile", (req, res) => {
 
 app.post("/register", async (req, res) => {
   const { userName, password } = req.body;
-  const hashPassword = bcrypt.hashSync(password, bcryptSalt)
+  const hashPassword = bcrypt.hashSync(password, bcryptSalt);
   try {
     const createdUser = await User.create({
       userName,
-      password : hashPassword,
+      password: hashPassword,
     });
     jwt.sign(
       { userId: createdUser._id, userName },
@@ -70,19 +71,26 @@ app.post("/register", async (req, res) => {
   }
 });
 
-app.post('/login', async (req,res) => {
+app.post("/login", async (req, res) => {
   const { userName, password } = req.body;
-  const foundUser = await User.findOne({ userName })
+  const foundUser = await User.findOne({ userName });
 
-  if (foundUser)
-  {
-    const passOk = bcrypt.compareSync(password, foundUser.password)
+  if (foundUser) {
+    const passOk = bcrypt.compareSync(password, foundUser.password);
 
-    if (passOk)
-    {
-       
-      }
+    if (passOk) {
+      jwt.sign(
+        { userId: foundUser, id: userName },
+        jwtSecret,
+        {},
+        (err, token) => {
+          res.cookie("token", token, { sameSite: "none", secure: true }).json({
+            id: foundUser._id,
+          });
+        }
+      );
     }
-})
+  }
+});
 
 app.listen(3000, () => console.log("listening on port 3000"));

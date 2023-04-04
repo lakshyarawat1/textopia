@@ -1,14 +1,19 @@
+import { UserContextProvider } from './components/UserContext';
 import './index.css'
+import axios from 'axios'
+import Routes from './components/Routes';
+
 
 function App() {
-
+  axios.defaults.baseURL = 'http://localhost:3000'
+  axios.defaults.withCredentials = true;
   return (
     <div className="App">
-      <div className='text-4xl m-10'>
-        hello
-      </div>
+      <UserContextProvider>
+        <Routes />
+      </UserContextProvider>
     </div>
-  )
+  );
 }
 
 export default App

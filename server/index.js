@@ -6,6 +6,8 @@ import jwt from "jsonwebtoken";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import bcrypt from "bcryptjs";
+import { WebSocketServer } from 'ws'
+
 dotenv.config();
 
 const app = express();
@@ -92,4 +94,34 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.listen(3000, () => console.log("listening on port 3000"));
+const server = app.listen(3000, () => console.log("listening on port 3000"));
+
+
+const wss = new WebSocketServer({ server })
+
+wss.on('connection', (connection, req) => {
+  const cookies = req.headers.cookie;
+
+  if (cookies) 
+  {
+    const tokenCookieString = cookies.split(';').find(str => str.startsWith('token='))
+    if (tokenCookieString)
+    {
+      const token = tokenCookieString.split('=')[1];
+      if (token) {
+        jwt.verify(token, jwtSecret, {}, (err, userData) => {
+          if (err) throw err
+          const { userId, userName } = userData;
+
+          connection.userId = userId;
+          connection.userName = userName;
+        })
+        }
+      }
+  }
+  [...wss.clients].forEach(client => {
+    client.send(JSON.stringify({
+      online: [...wss.clients].map(c => ({ userId: c.userId._id, userName: c.userId.userName }))
+    }))
+  })
+})

@@ -5,6 +5,7 @@ import User from "./models/userSchema.js";
 import jwt from "jsonwebtoken";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import bcrypt from 'bcryptjs'
 dotenv.config();
 
 const app = express();
@@ -23,6 +24,7 @@ app.use(
 );
 
 const jwtSecret = process.env.JWT_SECRET;
+const bcryptSalt = bcrypt.genSaltSync(10);
 
 app.get("/", (req, res) => {
   res.status(200).json("test ok");
@@ -42,10 +44,11 @@ app.get("/profile", (req, res) => {
 
 app.post("/register", async (req, res) => {
   const { userName, password } = req.body;
+  const hashPassword = bcrypt.hashSync(password, bcryptSalt)
   try {
     const createdUser = await User.create({
       userName,
-      password,
+      password : hashPassword,
     });
     jwt.sign(
       { userId: createdUser._id, userName },
@@ -66,5 +69,20 @@ app.post("/register", async (req, res) => {
     res.status(500).json("error");
   }
 });
+
+app.post('/login', async (req,res) => {
+  const { userName, password } = req.body;
+  const foundUser = await User.findOne({ userName })
+
+  if (foundUser)
+  {
+    const passOk = bcrypt.compareSync(password, foundUser.password)
+
+    if (passOk)
+    {
+       
+      }
+    }
+})
 
 app.listen(3000, () => console.log("listening on port 3000"));

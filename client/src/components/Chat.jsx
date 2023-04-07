@@ -1,13 +1,13 @@
 import React, { useContext, useEffect, useState } from "react";
 import Avatar from "./Avatar";
-import { UserContext } from './UserContext';
+import { UserContext } from "./UserContext";
 
 const Chat = () => {
   const [ws, setWs] = useState(null);
   const [onlinePeople, setOnlinePeople] = useState({});
-  const [selectedUserId, setSelectedUserId] = useState(null)
+  const [selectedUserId, setSelectedUserId] = useState(null);
 
-  const { userName, id }  = useContext(UserContext)
+  const { userName, id } = useContext(UserContext);
 
   useEffect(() => {
     const ws = new WebSocket("ws://localhost:3000");
@@ -30,20 +30,30 @@ const Chat = () => {
     }
   }
 
+  function toggleSelection(userId) {
+    if (selectedUserId !== null && selectedUserId !== userId ) {
+      setSelectedUserId(userId);
+    } else if (selectedUserId === null) {
+      setSelectedUserId(userId);
+    } else if (selectedUserId === userId) {
+      setSelectedUserId(null);
+    }
+  }
+
   const onlinePeopleExclOurUser = { ...onlinePeople };
-  delete onlinePeopleExclOurUser[id]
+  delete onlinePeopleExclOurUser[id];
 
   return (
     <div className="flex h-screen">
-      <div className="bg-blue-100 w-1/4">
-        <div className="text-blue-500 font-bold text-3xl flex gap-5 m-2 pb-10">
+      <div className="bg-[#1d1e24] w-1/4">
+        <div className="text-[#5953d4] font-semibold text-5xl flex gap-5 m-2 py-3">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth={1.5}
             stroke="currentColor"
-            className="w-8 h-8"
+            className="w-8 h-8 m-3"
           >
             <path
               strokeLinecap="round"
@@ -57,34 +67,38 @@ const Chat = () => {
         {Object.keys(onlinePeopleExclOurUser).map((userId) => (
           <div
             key={userId}
-            onClick={() => setSelectedUserId(userId)}
+            onClick={() => toggleSelection(userId)}
             className={
-              " border-b border-gray-400 flex h-16 items-center gap-3 cursor-pointer" +
-              (userId === selectedUserId ? " bg-blue-50" : "")
+              "flex h-16 items-center gap-3 cursor-pointer w-full" +
+              (userId === selectedUserId ? " bg-[#20232b]" : "")
             }
           >
             {userId === selectedUserId && (
               <div className="w-1 bg-blue-500 rounded-r-md h-16"></div>
             )}
-            <div className="flex gap-2 py-2 pl-4 items-center ">
+            <div className="flex gap-2 py-2 pl-4 items-center">
               <Avatar userName={onlinePeople[userId]} userId={userId} />
-              <span className="text-gray-800">{onlinePeople[userId]}</span>
+              <div className="text-gray-300 pl-4 font-bold text-lg w-full">
+                {onlinePeople[userId]}
+              </div>
             </div>
           </div>
         ))}
       </div>
-      <div className="bg-blue-300 w-3/4 flex flex-col">
+      <div className="bg-[#20232b] w-3/4 flex flex-col">
         <div className="flex-grow">
           {!selectedUserId && (
             <div className="flex h-full items-center justify-center">
-              <div className="text-gray-500">&larr; Select a conversation to start chatting</div>
+              <div className="text-gray-400 text-2xl">
+                &larr; Select a conversation to start chatting
+              </div>
             </div>
           )}
         </div>
         <div className="flex gap-2 m-3">
           <input
             type="text"
-            className="bg-white p-2 rounded-3xl flex-grow pl-5"
+            className="bg-[#20232b] border text-gray-200 p-2 rounded-3xl flex-grow pl-5"
             placeholder="Type your message here ...."
           />
           <button className="bg-blue-500 p-2 text-white rounded-full">

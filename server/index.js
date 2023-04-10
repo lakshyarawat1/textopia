@@ -103,29 +103,51 @@ wss.on("connection", (connection, req) => {
 
   if (cookies) {
     const tokenCookieString = cookies
-      .split(";")
+      .split("; ")
       .find((str) => str.startsWith("token="));
+
     if (tokenCookieString) {
       const token = tokenCookieString.split("=")[1];
       if (token) {
-        jwt.verify(token, jwtSecret, {}, (err, userData) => {
-          if (err) throw err;
+        jwt.verify(token, jwtSecret, {}, (error, userData) => {
+          if (error) {
+            throw error;
+          }
           const { userId, userName } = userData;
-
-          connection.userId = userId;
-          connection.userName = userName;
+          connection.userId = userId._id;
+          connection.userName = userId.userName;
         });
       }
     }
   }
-  [...wss.clients].forEach((client) => {
-    client.send(
-      JSON.stringify({
-        online: [...wss.clients].map((c) => ({
-          userId: c.userId._id,
-          userName: c.userId.userName,
-        })),
-      })
-    );
-  });
+  [...wss.clients].forEach(client => {
+    client.send(JSON.stringify({
+      online : [...wss.clients].map(c => ({userId : c.userId, userName : c.userName}))
+    }));
+  })
 });
+
+
+// {
+//   userId: '6432d1cac14165b77468ab9a',
+//   userName: 'userThree',
+//   iat: 1681052107
+// }
+
+
+
+
+
+
+// {
+//   userId: {
+//     _id: '642be9e0c9a358cc36b6b691',
+//     userName: 'test',
+//     password: '$2a$10$DkbrIQMEtlyBq781c8ErlezhOkFHD/eYkmfoO3JI1hAwUfVjROC5q',
+//     createdAt: '2023-04-04T09:12:00.692Z',
+//     updatedAt: '2023-04-04T09:12:00.692Z',
+//     __v: 0
+//   },
+//   id: 'test',
+//   iat: 1681049803
+// }

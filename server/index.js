@@ -7,6 +7,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import bcrypt from "bcryptjs";
 import { WebSocketServer } from "ws";
+import Message from "./models/messages.js";
 
 dotenv.config();
 
@@ -120,34 +121,41 @@ wss.on("connection", (connection, req) => {
       }
     }
   }
-  [...wss.clients].forEach(client => {
-    client.send(JSON.stringify({
-      online : [...wss.clients].map(c => ({userId : c.userId, userName : c.userName}))
-    }));
-  })
+
+  connection.on("message", async (message) => {
+    const messageData = JSON.parse(message.toString());
+    const { recipient, text, file } = messageData;
+
+    if (recipient && (text || file)) {
+      const messageDoc = await Message.create({
+        sender: connection.userId,
+        recipient,
+        text,
+        file: file ? filename : null,
+      });
+      console.log("created message", messageDoc.text);
+      [...wss.clients]
+        .filter((c) => c.userId === recipient)
+        .forEach((c) =>
+          c.send(
+            JSON.stringify({
+              text,
+              sender: connection.userId,
+              recipient,
+              _id: messageDoc._id,
+            })
+          )
+        );
+    }
+  });
+  [...wss.clients].forEach((client) => {
+    client.send(
+      JSON.stringify({
+        online: [...wss.clients].map((c) => ({
+          userId: c.userId,
+          userName: c.userName,
+        })),
+      })
+    );
+  });
 });
-
-
-// {
-//   userId: '6432d1cac14165b77468ab9a',
-//   userName: 'userThree',
-//   iat: 1681052107
-// }
-
-
-
-
-
-
-// {
-//   userId: {
-//     _id: '642be9e0c9a358cc36b6b691',
-//     userName: 'test',
-//     password: '$2a$10$DkbrIQMEtlyBq781c8ErlezhOkFHD/eYkmfoO3JI1hAwUfVjROC5q',
-//     createdAt: '2023-04-04T09:12:00.692Z',
-//     updatedAt: '2023-04-04T09:12:00.692Z',
-//     __v: 0
-//   },
-//   id: 'test',
-//   iat: 1681049803
-// }

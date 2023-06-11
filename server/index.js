@@ -125,6 +125,7 @@ wss.on("connection", (connection, req) => {
   connection.on("message", async (message) => {
     const messageData = JSON.parse(message.toString());
     const { recipient, text, file } = messageData;
+    console.log(messageData) 
 
     if (recipient && (text || file)) {
       const messageDoc = await Message.create({
@@ -136,7 +137,7 @@ wss.on("connection", (connection, req) => {
       console.log("created message", messageDoc.text);
       [...wss.clients]
         .filter((c) => c.userId === recipient)
-        .forEach((c) =>
+        .forEach((c) => {
           c.send(
             JSON.stringify({
               text,
@@ -145,6 +146,8 @@ wss.on("connection", (connection, req) => {
               _id: messageDoc._id,
             })
           )
+          console.log("send to the client")
+        }
         );
     }
   });

@@ -23,22 +23,16 @@ const Chat = () => {
     } else if (selectedUserId === null) {
       setSelectedUserId(userId);
     }
-    // } else if (selectedUserId === userId) {
-    //   setSelectedUserId(null);
-    // }
   }
 
   function handleMessage(ev) {
     const messageData = JSON.parse(ev.data);
-    console.log(selectedUserId);
-    console.log({ ev, messageData });
     if ("online" in messageData) {
       showOnlinePeople(messageData.online);
     } else if ("text" in messageData) {
-      if (messageData.sender === selectedUserId) {
-        setMessages((prev) => [...prev, { ...messageData }]);
-      }
-      console.log(messageData.sender);
+      console.log("message recieved", messageData.text);
+      messages.push(messageData);
+        console.log(messages);
     }
   }
 
@@ -49,8 +43,6 @@ const Chat = () => {
     });
     setOnlinePeople(people);
   }
-
-  console.log(selectedUserId);
 
   const onlinePeopleExclUser = { ...onlinePeople };
   delete onlinePeopleExclUser[id];
@@ -75,9 +67,6 @@ const Chat = () => {
     ]);
   }
 
-  const messagesWithoutDupes = uniqBy(messages, "_id");
-
-  console.log(messages);
   return (
     <div className="flex h-screen">
       <div className="bg-[#1d1e24] w-1/4">
@@ -126,7 +115,7 @@ const Chat = () => {
           )}
           {selectedUserId && (
             <div className="text-white">
-              {messagesWithoutDupes.map((message) => (
+              {messages.map((message) => (
                 <div
                   key={message._id}
                   className={message.sender === id ? "text-right" : "text-left"}

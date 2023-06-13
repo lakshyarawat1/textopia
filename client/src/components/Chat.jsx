@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { UserContext } from "./UserContext";
 import Avatar from "./Avatar";
-import { uniqBy } from "lodash";
+import { random, uniqBy } from "lodash";
 
 const Chat = () => {
   const [selectedUserId, setSelectedUserId] = useState(null);
@@ -30,9 +30,7 @@ const Chat = () => {
     if ("online" in messageData) {
       showOnlinePeople(messageData.online);
     } else if ("text" in messageData) {
-      console.log("message recieved", messageData.text);
-      messages.push(messageData);
-        console.log(messages);
+      setMessages((prev) => [...prev, { ...messageData }]);
     }
   }
 
@@ -66,6 +64,8 @@ const Chat = () => {
       },
     ]);
   }
+
+  const messagesWithoutDupes = uniqBy(messages, "_id");
 
   return (
     <div className="flex h-screen">
@@ -115,9 +115,9 @@ const Chat = () => {
           )}
           {selectedUserId && (
             <div className="text-white">
-              {messages.map((message) => (
+              {messagesWithoutDupes.map((message, key) => (
                 <div
-                  key={message._id}
+                  key={key}
                   className={message.sender === id ? "text-right" : "text-left"}
                 >
                   <div

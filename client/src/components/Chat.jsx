@@ -18,10 +18,10 @@ const Chat = () => {
   }, []);
 
   function connectToWS() {
-     const ws = new WebSocket("ws://localhost:3000");
-     setWs(ws);
-     ws.addEventListener("message", handleMessage);
-     ws.addEventListener("close", () => connectToWS());
+    const ws = new WebSocket("ws://localhost:3000");
+    setWs(ws);
+    ws.addEventListener("message", handleMessage);
+    ws.addEventListener("close", () => connectToWS());
   }
 
   function toggleSelection(userId) {
@@ -70,17 +70,22 @@ const Chat = () => {
         _id: Date.now(),
       },
     ]);
-    const div = divUnderMessages.current;
-    div.scrollIntoView({ behavior: "smooth" });
   }
 
   useEffect(() => {
-    if (selectedUserId) {
-      axios.get('/messages/' + selectedUserId).then(res => {
-        setMessages(res.data)
-      })
+    const div = divUnderMessages.current;
+    if (div) {
+      div.scrollIntoView({ behavior: "smooth", block: "end" });
     }
-  }, [selectedUserId])
+  }, []);
+
+  useEffect(() => {
+    if (selectedUserId) {
+      axios.get("/messages/" + selectedUserId).then((res) => {
+        setMessages(res.data);
+      });
+    }
+  }, [selectedUserId]);
 
   const messagesWithoutDupes = uniqBy(messages, "_id");
 
@@ -117,7 +122,11 @@ const Chat = () => {
               <div className="w-1 bg-blue-500 h-18 rounded-r-md"></div>
             )}
             <div className="flex gap-4 pl-4 py-4 items-center text-xl capitalize">
-              <Avatar userId={userId} userName={userName} />
+              <Avatar
+                userId={userId}
+                userName={onlinePeople[userId]}
+                online={true}
+              />
               {onlinePeople[userId]}
             </div>
           </div>
@@ -136,52 +145,54 @@ const Chat = () => {
             <div className="">
               <div className="text-white absolute right-0 overflow-y-scroll w-[75%] h-[85%]">
                 {messagesWithoutDupes.map((message, key) => (
-                  <div
-                    key={key}
-                    className={
-                      message.sender === id ? "text-right" : "text-left"
-                    }
-                  >
+                  <>
                     <div
+                      key={key}
                       className={
-                        "text-left inline-block px-4 py-2 my-2 rounded-xl text-md font-bold " +
-                        (message.sender === id
-                          ? "bg-blue-500 text-white mr-6"
-                          : "bg-white text-gray-500 ml-6")
+                        message.sender === id ? "text-right" : "text-left"
                       }
                     >
-                      {message.text}
-                      {message.file && (
-                        <div className="">
-                          <a
-                            target="_blank"
-                            className="flex items-center gap-1 border-b"
-                            href={
-                              axios.defaults.baseURL +
-                              "/uploads/" +
-                              message.file
-                            }
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 24 24"
-                              fill="currentColor"
-                              className="w-4 h-4"
+                      <div
+                        className={
+                          "text-left inline-block max-w-[30%] px-4 py-2 my-2 rounded-xl text-md font-bold " +
+                          (message.sender === id
+                            ? "bg-blue-500 text-white mr-6"
+                            : "bg-white text-gray-500 ml-6")
+                        }
+                      >
+                        {message.text}
+                        {message.file && (
+                          <div className="">
+                            <a
+                              target="_blank"
+                              className="flex items-center gap-1 border-b"
+                              href={
+                                axios.defaults.baseURL +
+                                "/uploads/" +
+                                message.file
+                              }
                             >
-                              <path
-                                fillRule="evenodd"
-                                d="M18.97 3.659a2.25 2.25 0 00-3.182 0l-10.94 10.94a3.75 3.75 0 105.304 5.303l7.693-7.693a.75.75 0 011.06 1.06l-7.693 7.693a5.25 5.25 0 11-7.424-7.424l10.939-10.94a3.75 3.75 0 115.303 5.304L9.097 18.835l-.008.008-.007.007-.002.002-.003.002A2.25 2.25 0 015.91 15.66l7.81-7.81a.75.75 0 011.061 1.06l-7.81 7.81a.75.75 0 001.054 1.068L18.97 6.84a2.25 2.25 0 000-3.182z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                            {message.file}
-                          </a>
-                        </div>
-                      )}
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                                className="w-4 h-4"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M18.97 3.659a2.25 2.25 0 00-3.182 0l-10.94 10.94a3.75 3.75 0 105.304 5.303l7.693-7.693a.75.75 0 011.06 1.06l-7.693 7.693a5.25 5.25 0 11-7.424-7.424l10.939-10.94a3.75 3.75 0 115.303 5.304L9.097 18.835l-.008.008-.007.007-.002.002-.003.002A2.25 2.25 0 015.91 15.66l7.81-7.81a.75.75 0 011.061 1.06l-7.81 7.81a.75.75 0 001.054 1.068L18.97 6.84a2.25 2.25 0 000-3.182z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                              {message.file}
+                            </a>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div ref={divUnderMessages} />
-                  </div>
+                  </>
                 ))}
+                <div ref={divUnderMessages} />
               </div>
             </div>
           )}

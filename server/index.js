@@ -45,6 +45,31 @@ app.get("/profile", (req, res) => {
   }
 });
 
+async function getUserDataFromRequest(req) {
+  return new Promise((resolve, reject) => {
+    const token = req.cookies?.token;
+    if (token) {
+      jwt.verify(token, jwtSecret, {}, (err, userData) => {
+        if (err) throw err;
+        resolve(userData);
+      });
+    } else {
+      reject("no token found !");
+    }
+  });
+}
+
+app.get("/messages/:userId", async (req, res) => {
+  const { userId } = req.params;
+  const userData = await getUserDataFromRequest(req);
+  const ourUserId = userData.userId;
+  const messages = await Message.find({
+    sender : {$in : [userId, ourUserId]},
+    recipient : {$in : [userId, ourUserId]},
+  }).sort({ createdAt : 1 }) 
+  res.json(messages);
+});
+
 app.post("/register", async (req, res) => {
   const { userName, password } = req.body;
   const hashPassword = bcrypt.hashSync(password, bcryptSalt);
@@ -125,7 +150,7 @@ wss.on("connection", (connection, req) => {
   connection.on("message", async (message) => {
     const messageData = JSON.parse(message.toString());
     const { recipient, text, file } = messageData;
-    console.log(messageData) 
+    console.log(messageData);
 
     if (recipient && (text || file)) {
       const messageDoc = await Message.create({
@@ -145,10 +170,9 @@ wss.on("connection", (connection, req) => {
               recipient,
               _id: messageDoc._id,
             })
-          )
-          console.log("send to the client")
-        }
-        );
+          );
+          console.log("send to the client");
+        });
     }
   });
   [...wss.clients].forEach((client) => {

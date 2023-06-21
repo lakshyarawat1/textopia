@@ -3,6 +3,7 @@ import { UserContext } from "./UserContext";
 import Avatar from "./Avatar";
 import axios from "axios";
 import { random, uniqBy } from "lodash";
+import Contact from "./Contact";
 
 const Chat = () => {
   const [selectedUserId, setSelectedUserId] = useState(null);
@@ -11,6 +12,7 @@ const Chat = () => {
   const [ws, setWs] = useState(null);
   const [newMessageText, setNewMessageText] = useState("");
   const [messages, setMessages] = useState([]);
+  const [offlinePeople, setOfflinePeople] = useState({});
   const divUnderMessages = useRef();
 
   useEffect(() => {
@@ -87,9 +89,19 @@ const Chat = () => {
     }
   }, [selectedUserId]);
 
-  const messagesWithoutDupes = uniqBy(messages, "_id");
+  useEffect(() => {
+    axios.get("/people").then((res) => {
+      const data = res.data;
+      const offline = data.users
+        .filter((p) => p._id !== id)
+        .filter((p) => !Object.keys(onlinePeople).includes(p._id));
 
-  console.log(messagesWithoutDupes);
+      setOfflinePeople(offline);
+      console.log(offlinePeople)
+    });
+  }, [onlinePeople]);
+
+  const messagesWithoutDupes = uniqBy(messages, "_id");
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -112,22 +124,26 @@ const Chat = () => {
           Textopia
         </div>
         {Object.keys(onlinePeopleExclUser).map((userId) => (
+          <Contact
+            id={userId}
+            userName={onlinePeopleExclUser}
+            onClick={toggleSelection(userId)}
+            selected={userId === selectedUserId}
+          />
+        ))}{" "}
+        {Object.values(offlinePeople).map((person) => (
           <div
             className={`text-white flex cursor-pointer + ${
               selectedUserId ? "bg-gray-800" : ""
             }`}
-            onClick={() => toggleSelection(userId)}
+            onClick={() => onClick(id)}
           >
-            {userId === selectedUserId && (
+            {id === selectedUserId && (
               <div className="w-1 bg-blue-500 h-18 rounded-r-md"></div>
             )}
             <div className="flex gap-4 pl-4 py-4 items-center text-xl capitalize">
-              <Avatar
-                userId={userId}
-                userName={onlinePeople[userId]}
-                online={true}
-              />
-              {onlinePeople[userId]}
+              <Avatar userId={id} userName={userName} online={false} />
+              {person.userName}
             </div>
           </div>
         ))}

@@ -33,6 +33,11 @@ app.get("/", (req, res) => {
   res.status(200).json("test ok");
 });
 
+app.get('/people', async (req, res) => {
+  const users = await User.find({  }, {'_id' : 1, userName : 1})
+  res.json({ users })
+})
+
 app.get("/profile", (req, res) => {
   const token = req.cookies?.token;
   if (token) {

@@ -17,6 +17,7 @@ const Chat = () => {
 
   useEffect(() => {
     connectToWS();
+    console.log(selectedUserId)
   }, []);
 
   function connectToWS() {
@@ -102,7 +103,7 @@ const Chat = () => {
   }, [onlinePeople]);
 
   const messagesWithoutDupes = uniqBy(messages, "_id");
-
+  console.log(selectedUserId)
   return (
     <div className="flex h-screen overflow-hidden">
       <div className="bg-[#1d1e24] w-1/4">
@@ -127,7 +128,7 @@ const Chat = () => {
           <Contact
             id={userId}
             userName={onlinePeopleExclUser}
-            onClick={toggleSelection(userId)}
+            onClick={setSelectedUserId(userId)}
             selected={userId === selectedUserId}
           />
         ))}{" "}

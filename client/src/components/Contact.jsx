@@ -1,13 +1,13 @@
-import React from 'react'
-import Avatar from './Avatar';
+import React from "react";
+import Avatar from "./Avatar";
 
-const Contact = ({ id, onClick, selected, userName, }) => {
+const Contact = ({ id, onClick, selected, userName }) => {
   return (
     <div
       className={`text-white flex cursor-pointer + ${
         selected ? "bg-gray-800" : ""
       }`}
-      onClick={() => onClick(id)}
+      onClick={onClick(id)}
     >
       {id === selected && (
         <div className="w-1 bg-blue-500 h-18 rounded-r-md"></div>
@@ -18,6 +18,6 @@ const Contact = ({ id, onClick, selected, userName, }) => {
       </div>
     </div>
   );
-}
+};
 
-export default Contact
+export default Contact;

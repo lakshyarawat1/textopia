@@ -4,6 +4,7 @@ import Avatar from "./Avatar";
 import axios from "axios";
 import { random, uniqBy } from "lodash";
 import Contact from "./Contact";
+import Contact from "./Contact";
 
 const Chat = () => {
   const [selectedUserId, setSelectedUserId] = useState(null);
@@ -17,6 +18,7 @@ const Chat = () => {
 
   useEffect(() => {
     connectToWS();
+    console.log(selectedUserId)
   }, []);
 
   function connectToWS() {
@@ -101,6 +103,18 @@ const Chat = () => {
     });
   }, [onlinePeople]);
 
+  useEffect(() => {
+    axios.get("/people").then((res) => {
+      const data = res.data;
+      const offline = data.users
+        .filter((p) => p._id !== id)
+        .filter((p) => !Object.keys(onlinePeople).includes(p._id));
+
+      setOfflinePeople(offline);
+      console.log(offlinePeople)
+    });
+  }, [onlinePeople]);
+
   const messagesWithoutDupes = uniqBy(messages, "_id");
 
   return (
@@ -127,7 +141,7 @@ const Chat = () => {
           <Contact
             id={userId}
             userName={onlinePeopleExclUser}
-            onClick={toggleSelection(userId)}
+            onClick={setSelectedUserId(userId)}
             selected={userId === selectedUserId}
           />
         ))}{" "}

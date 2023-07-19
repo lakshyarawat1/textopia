@@ -2,8 +2,7 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import { UserContext } from "./UserContext";
 import Avatar from "./Avatar";
 import axios from "axios";
-import { random, uniqBy } from "lodash";
-import Contact from "./Contact";
+import { random, set, uniqBy } from "lodash";
 import Contact from "./Contact";
 
 const Chat = () => {
@@ -18,7 +17,7 @@ const Chat = () => {
 
   useEffect(() => {
     connectToWS();
-    console.log(selectedUserId)
+    console.log(selectedUserId);
   }, []);
 
   function connectToWS() {
@@ -26,14 +25,6 @@ const Chat = () => {
     setWs(ws);
     ws.addEventListener("message", handleMessage);
     ws.addEventListener("close", () => connectToWS());
-  }
-
-  function toggleSelection(userId) {
-    if (selectedUserId !== null && selectedUserId !== userId) {
-      setSelectedUserId(userId);
-    } else if (selectedUserId === null) {
-      setSelectedUserId(userId);
-    }
   }
 
   function handleMessage(ev) {
@@ -99,7 +90,8 @@ const Chat = () => {
         .filter((p) => !Object.keys(onlinePeople).includes(p._id));
 
       setOfflinePeople(offline);
-      console.log(offlinePeople)
+      console.log(onlinePeopleExclUser)
+      console.log(offlinePeople);
     });
   }, [onlinePeople]);
 
@@ -111,7 +103,7 @@ const Chat = () => {
         .filter((p) => !Object.keys(onlinePeople).includes(p._id));
 
       setOfflinePeople(offline);
-      console.log(offlinePeople)
+      console.log(offlinePeople);
     });
   }, [onlinePeople]);
 
@@ -137,30 +129,28 @@ const Chat = () => {
           </svg>
           Textopia
         </div>
-        {Object.keys(onlinePeopleExclUser).map((userId) => (
-          <Contact
-            id={userId}
-            userName={onlinePeopleExclUser}
-            onClick={setSelectedUserId(userId)}
-            selected={userId === selectedUserId}
-          />
-        ))}{" "}
-        {Object.values(offlinePeople).map((person) => (
-          <div
-            className={`text-white flex cursor-pointer + ${
-              selectedUserId ? "bg-gray-800" : ""
-            }`}
-            onClick={() => onClick(id)}
-          >
-            {id === selectedUserId && (
-              <div className="w-1 bg-blue-500 h-18 rounded-r-md"></div>
-            )}
-            <div className="flex gap-4 pl-4 py-4 items-center text-xl capitalize">
-              <Avatar userId={id} userName={userName} online={false} />
-              {person.userName}
-            </div>
-          </div>
-        ))}
+        <div>
+          {Object.keys(onlinePeopleExclUser).map((userId) => (
+            <Contact
+              key={userId}
+              id={userId}
+              online={true}
+              userName={onlinePeopleExclUser[userId]}
+              onClick={() => setSelectedUserId(userId)}
+              selected={userId === selectedUserId}
+            />
+          ))}
+          {Object.keys(offlinePeople).map((userId) => (
+            <Contact
+              key={userId}
+              id={userId}
+              online={false}
+              userName={offlinePeople[userId].userName}
+              onClick={() => setSelectedUserId(userId)}
+              selected={userId === selectedUserId}
+            />
+          ))}
+        </div>
       </div>
       <div className="bg-[#20232b] w-3/4 flex flex-col">
         <div className="flex-grow">
